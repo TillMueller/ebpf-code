@@ -137,6 +137,7 @@ static void stats_print(struct stats_record *stats_rec,
 		pps     = packets / period;
 
 		printf(fmt, action, rec->total.rx_packets, pps, period);
+		fflush(stdout);
 	}
 }
 
