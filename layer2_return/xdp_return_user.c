@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 {
 	struct bpf_prog_info info = {};
 	__u32 info_len = sizeof(info);
-	char filename[256] = "xdp_pass_kern.o";
+	char filename[256] = "xdp_return_kern.o";
 	int prog_fd, err;
 
 	struct config cfg = {
