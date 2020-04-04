@@ -24,7 +24,7 @@ static const char *__doc__ = "XDP loader and stats program\n"
 #include "bpf_util.h" /* bpf_num_possible_cpus */
 
 static const char *default_filename = "xdp_prog_kern.o";
-static const char *default_progsec = "xdp_stats1";
+static const char *default_progsec = "xdp";
 
 static const struct option_wrapper long_options[] = {
 	{{"help",        no_argument,		NULL, 'h' },
