@@ -125,7 +125,7 @@ static void stats_print(struct stats_record *stats_rec,
 		char *fmt = "%-12s %'11lld pkts (%'10.0f pps)"
 			//" %'11lld Kbytes (%'6.0f Mbits/s)"
 			" period:%f\n";
-		const char *action = action2str(XDP_PASS);
+		const char *action = action2str(XDP_TX);
 		rec  = &stats_rec->stats[0];
 		prev = &stats_prev->stats[0];
 
@@ -189,7 +189,7 @@ static void stats_collect(int map_fd, __u32 map_type,
 			  struct stats_record *stats_rec)
 {
 	/* Assignment#2: Collect other XDP actions stats  */
-	__u32 key = XDP_PASS;
+	__u32 key = XDP_TX;
 
 	map_collect(map_fd, map_type, key, &stats_rec->stats[0]);
 }
