@@ -18,8 +18,8 @@ struct bpf_map_def SEC("maps") xdp_stats_map = {
 SEC("xdp")
 int  xdp_stats1_func(struct xdp_md *ctx)
 {
-	void *data_end = (void *)(long)ctx->data_end;
-	void *data     = (void *)(long)ctx->data;
+	unsigned char* data_end = (void *)(long)ctx->data_end;
+	unsigned char* data     = (void *)(long)ctx->data;
 	struct datarec *rec;
 	__u32 key = XDP_TX;
 
