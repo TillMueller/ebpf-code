@@ -1,1 +1,1 @@
-This test does not compile. It was meant to do the same thing as test2, but writing the MAC address atomically. Unfortunately, I have not been able to get a rudimentary lock to compile, let alone getting it loaded as an XDP module.
+Packets are returned on layer 2, additionally a 64 bit counter of processed packets is atomically incremented and also all six bytes from one of the MAC addresses are non-atomically written to an ebpf map.

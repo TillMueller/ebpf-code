@@ -5,7 +5,7 @@
 #include "common_kern_user.h" /* defines: struct datarec; */
 
 struct bpf_map_def SEC("maps") xdp_stats_map = {
-	.type        = BPF_MAP_TYPE_PERCPU_ARRAY,
+	.type        = BPF_MAP_TYPE_ARRAY,
 	.key_size    = sizeof(__u32),
 	.value_size  = sizeof(struct datarec),
 	.max_entries = XDP_ACTION_MAX,
@@ -29,6 +29,12 @@ int  xdp_stats1_func(struct xdp_md *ctx)
 
 	lock_xadd(&rec->rx_packets, 1);
 
+	int lock;
+	retry_lock:
+	lock = __sync_fetch_and_or(&rec->lock, 1);
+	if(lock == 1)
+		goto retry_lock;
+
 	unsigned char tmp;
 	for(int i = 0; i < 6; i++) {
 		if(data + i + 8 > data_end)
@@ -38,6 +44,9 @@ int  xdp_stats1_func(struct xdp_md *ctx)
 		data[i] = data[i + 6];
 		data[i + 6] = tmp;
 	}
+
+	__sync_fetch_and_and(&rec->lock, 0);
+
 	return XDP_TX;
 }
 
