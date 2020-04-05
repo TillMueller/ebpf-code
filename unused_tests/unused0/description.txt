@@ -1,0 +1,1 @@
+This test only contains an ebpf program that drops all incoming packets via XDP_DROP. The packets can then be counted using the "packet_count" script.

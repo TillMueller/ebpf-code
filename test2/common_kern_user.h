@@ -7,7 +7,6 @@
 /* This is the data record stored in the map */
 struct datarec {
 	__u64 rx_packets;
-	int lock;
 	unsigned char mac_address[6];
 	/* Assignment#1: Add byte counters */
 };

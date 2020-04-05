@@ -1,0 +1,1 @@
+Packets are returned on layer 2, additionally a 64 bit counter of processed packets is atomically incremented and also all six bytes from one of the MAC addresses are non-atomically written to an ebpf map.

@@ -32,9 +32,8 @@ int  xdp_stats1_func(struct xdp_md *ctx)
 	unsigned char tmp;
 	for(int i = 0; i < 6; i++) {
 		if(data + i + 8 > data_end)
-			return XDP_ABORTED;
+			return XDP_DROP;
 		tmp = data[i];
-		rec->mac_address[i] = tmp;
 		data[i] = data[i + 6];
 		data[i + 6] = tmp;
 	}
