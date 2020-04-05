@@ -1,0 +1,1 @@
+Packets are returned on layer 2, additionally all six bytes from one of the MAC addresses are non-atomically written to an ebpf map.
