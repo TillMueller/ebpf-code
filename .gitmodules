@@ -1,0 +1,3 @@
+[submodule "xdp_loader/libbpf"]
+	path = xdp_loader/libbpf
+	url = https://github.com/libbpf/libbpf.git
