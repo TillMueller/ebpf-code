@@ -1,2 +1,2 @@
 #!/bin/bash
-./xdp_return_user --dev $1 --unload
+../xdp_loader/simple_loader -d $1 -u
