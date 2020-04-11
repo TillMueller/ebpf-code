@@ -13,6 +13,7 @@ int main(int argc, char* argv[]) {
     mapfd = bpf_obj_get(path);
     if(mapfd < 0) {
         printf("Could not get map file descriptor, exiting\n");
+        fflush(stdout);
         return 1;
     }
     for(;;) {
@@ -22,8 +23,10 @@ int main(int argc, char* argv[]) {
         int error = bpf_map_lookup_elem(mapfd, &key, &value);
         if(error != 0) {
             printf("Could not get value from map, exiting\n");
+            fflush(stdout);
             return 1;
         }
         printf("packets: %lld\n", value.rx_packets);
+        fflush(stdout);
     }
 }
