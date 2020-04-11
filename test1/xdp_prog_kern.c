@@ -12,8 +12,9 @@ struct bpf_map_def __attribute__ ((section ("maps"))) xdp_stats_map = {
 };
 
 __attribute__ ((section ("xdp_stats1")))
-int  xdp_stats1_func(struct xdp_md *ctx)
-{
+int  xdp_stats1_func(struct xdp_md *ctx) {
+	unsigned char* data = (void *)(long)ctx->data;
+	unsigned char* data_end = (void *)(long)ctx->data_end;
 	struct datarec *rec;
 	__u32 key = XDP_PASS;
 	rec = bpf_map_lookup_elem(&xdp_stats_map, &key);
@@ -21,7 +22,16 @@ int  xdp_stats1_func(struct xdp_md *ctx)
 		return XDP_ABORTED;
 
 	__sync_fetch_and_add(&rec->rx_packets, 1);
-	return XDP_PASS;
+
+	unsigned char tmp;
+	for(int i = 0; i < 6; i++) {
+		if(data + i + 8 > data_end)
+			return XDP_DROP;
+		tmp = data[i];
+		data[i] = data[i + 6];
+		data[i + 6] = tmp;
+	}
+	return XDP_TX;
 }
 
 char _license[] __attribute__ ((section ("GPL"))) = "GPL";

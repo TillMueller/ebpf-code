@@ -4,9 +4,13 @@
 #include <libbpf.h>
 #include "common_kern_user.h"
 
-int main() {
+#define MAX_PATH_LENGTH 4096
+
+int main(int argc, char* argv[]) {
     int mapfd;
-    mapfd = bpf_obj_get("/sys/fs/bpf/venv/xdp_stats_map");
+    char path[MAX_PATH_LENGTH];
+    snprintf(path, MAX_PATH_LENGTH, "%s%s%s", "/sys/fs/bpf/", argv[1], "/xdp_stats_map");
+    mapfd = bpf_obj_get(path);
     if(mapfd < 0) {
         printf("Could not get map file descriptor, exiting\n");
         return 1;
