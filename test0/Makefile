@@ -1,14 +1,3 @@
-# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
-
-XDP_TARGETS := xdp_return_kern
-USER_TARGETS := xdp_return_user
-
-LLC ?= llc
-CLANG ?= clang
-CC := gcc
-
-LIBBPF_DIR = ../libbpf/src/
-COMMON_DIR = ../common/
-
-include $(COMMON_DIR)/common.mk
-COMMON_OBJS := $(COMMON_DIR)/common_params.o
+xdp_return_kern : xdp_return_kern.c
+        clang -S -target bpf -D __BPF_TRACING__ -Ixdp_loader/libbpf/src/ -Wall -Wno-unused-value -Wno-pointer-sign -Wno-compare-distinct-pointer-types -Werror -O2 -emit-llvm -c -g -o xdp_return_kern.ll xdp_return_kern.c
+        llc -march=bpf -filetype=obj -o xdp_return_kern.o xdp_return_kern.ll
