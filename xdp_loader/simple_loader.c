@@ -5,7 +5,6 @@
 #include <bpf.h>
 #include <libbpf.h>
 #include <getopt.h>
-#include "common_kern_user.h"
 
 enum action{NONE, LOAD, UNLOAD};
 

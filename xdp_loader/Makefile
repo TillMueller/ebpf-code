@@ -7,5 +7,3 @@ simple_loader : simple_loader.c
 
 clean :
 	rm simple_loader
-	rm *.ll
-	rm *.o
