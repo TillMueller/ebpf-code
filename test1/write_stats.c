@@ -9,7 +9,7 @@
 int main(int argc, char* argv[]) {
     int mapfd;
     char path[MAX_PATH_LENGTH];
-    snprintf(path, MAX_PATH_LENGTH, "%s%s%s", "/sys/fs/bpf/", argv[1], "/xdp_stats_map");
+    snprintf(path, MAX_PATH_LENGTH, "/sys/fs/bpf/%s/xdp_stats_map", argv[1]);
     mapfd = bpf_obj_get(path);
     if(mapfd < 0) {
         printf("Could not get map file descriptor, exiting\n");
