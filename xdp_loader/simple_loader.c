@@ -84,6 +84,7 @@ int main (int argc, char* argv[]) {
                     printf("Could not generate directory name for map pinning, exiting\n");
                     return bpf_set_link_xdp_fd(ifindex, -1, 0);
                 }
+                // Clean up existing maps that might interfere, errors if there are none
                 bpf_object__unpin_maps(bpf_obj, pin_dir_name);
                 error = bpf_object__pin_maps(bpf_obj, pin_dir_name);
                 if(error) {

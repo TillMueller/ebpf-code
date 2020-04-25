@@ -7,12 +7,12 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 	unsigned char* data = (void *)(long)ctx->data;
 	unsigned char* data_end = (void *)(long)ctx->data_end;
 
-	unsigned char xor;
+	unsigned char xor = 0;
 
 	#pragma unroll
 	for(int i = 0; i < 60; i++) {
 		if(data + i > data_end)
-			return XDP_ABORTED;
+			break;
 		xor ^= data[i];
 	}
 
