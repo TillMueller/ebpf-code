@@ -1,4 +1,4 @@
-run : xdp_loop_kern.o
+run : build
 	../xdp_loader/simple_loader -d $(IF) -f xdp_loop_kern.o -l
 
 build : xdp_loop_kern.c

@@ -12,14 +12,14 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 	#pragma unroll
 	for(int i = 0; i < 60; i++) {
 		if(data + i > data_end)
-			return XDP_ABORT;
+			return XDP_ABORTED;
 		xor ^= data[i];
 	}
 
 	unsigned char tmp;
 	for(int i = 0; i < 6; i++) {
 		if(data + i + 8 > data_end)
-			return XDP_ABORT;
+			return XDP_ABORTED;
 		tmp = data[i];
 		data[i] = data[i + 6];
 		data[i + 6] = tmp;
