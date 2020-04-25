@@ -1,11 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 #include <linux/bpf.h>
 #include <bpf_helpers.h>
-#include "common_kern_user.h"
 
 struct bpf_map_def SEC("maps") xdp_loop_map = {
 	.type        = BPF_MAP_TYPE_PERCPU_ARRAY,
-	.key_size    = sizeof(short),
+	.key_size    = sizeof(int),
 	.value_size  = sizeof(unsigned char),
 	.max_entries = /*{%LOOP_COUNT%}*/0,
 };
@@ -17,9 +16,12 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 
 	#pragma unroll
 	for(int i = 0; i < /*{%LOOP_COUNT%}*/0; i++) {
-		if(data + i > data_end)
+		if(data + i + 8 > data_end)
 			return XDP_ABORTED;
-		unsigned char* val = bpf_map_lookup_elem(&xdp_loop_map, (short*) &i);
+		int tmp = i;
+		unsigned char* val = bpf_map_lookup_elem(&xdp_loop_map, &tmp);
+		if(!val)
+			return XDP_ABORTED;
 		*val = data[i];
 		//xor ^= data[i];
 	}

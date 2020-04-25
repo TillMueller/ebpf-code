@@ -4,7 +4,7 @@ IF=lo
 .PHONY: load unload build dump clean
 
 load: $(NAME).o
-	../xdp_loader/simple_loader -d $(IF) -f $(NAME).o -l
+	../xdp_loader/simple_loader -d $(IF) -f $(NAME).o -l -m
 
 $(NAME).o: $(NAME)-template.c
 	sed 's|/\*{%LOOP_COUNT%}\*/0|$(BYTES)|g' $(NAME)-template.c > $(NAME).c
