@@ -1,18 +1,19 @@
 NAME=xdp_loop_kern
+.PHONY=: load unload dump clean
 
-load : build
+load: $(NAME).o
 	../xdp_loader/simple_loader -d $(IF) -f $(NAME).o -l
 
-build : $(NAME).c
+$(NAME).o: $(NAME).c
 	clang -S -target bpf -D __BPF_TRACING__ -I../xdp_loader/libbpf/src/ -Wall -Wno-unused-value -Wno-pointer-sign -Wno-compare-distinct-pointer-types -Werror -O2 -emit-llvm -c -g -o $(NAME).ll $(NAME).c
 	llc -march=bpf -filetype=obj -o $(NAME).o $(NAME).ll
 
-unload :
+unload:
 	./xdp_loader/simple_loader -d $(IF) -u
 
-dump :
+dump:
 	llvm-objdump -S -no-show-raw-insn $(NAME).o
 
-clean :
+clean:
 	rm $(NAME).ll
 	rm $(NAME).o
