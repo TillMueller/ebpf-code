@@ -1,9 +1,10 @@
 NAME=xdp_prog_kern
 NAME_USER=write_stats
+IF=lo
 .PHONY: load unload build dump clean
 
 load: $(NAME).o $(NAME_USER)
-	../xdp_loader/simple_loader -d $(IF) -f $(NAME).o -l
+	../xdp_loader/simple_loader -d $(IF) -f $(NAME).o -l -m
 	sleep 3
 	./write_stats $(IF)
 

@@ -1,4 +1,6 @@
 NAME=xdp_loop_kern
+BYTES=0
+IF=lo
 .PHONY: load unload build dump clean
 
 load: $(NAME).o

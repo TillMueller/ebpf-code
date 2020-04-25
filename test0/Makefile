@@ -1,4 +1,5 @@
 NAME=xdp_return_kern
+IF=lo
 .PHONY: load unload build dump clean
 
 load: $(NAME).o
