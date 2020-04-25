@@ -23,7 +23,8 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 		if(!val)
 			return XDP_ABORTED;
 		*val = data[i];
-		//xor ^= data[i];
+		// It might also be interesting to do one more read here:
+		//*val ^= data[i];
 	}
 
 	unsigned char tmp;
