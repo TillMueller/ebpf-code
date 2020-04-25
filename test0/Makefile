@@ -17,4 +17,3 @@ dump: $(NAME).o
 clean:
 	rm $(NAME).ll
 	rm $(NAME).o
-	rm $(NAME).c

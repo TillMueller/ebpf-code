@@ -24,4 +24,3 @@ clean:
 	rm $(NAME_USER)
 	rm $(NAME).ll
 	rm $(NAME).o
-	rm $(NAME).c
