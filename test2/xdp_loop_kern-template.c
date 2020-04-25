@@ -10,9 +10,9 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 	unsigned char xor = 0;
 
 	#pragma unroll
-	for(int i = 0; i < 60; i++) {
+	for(int i = 0; i < /*{%LOOP_COUNT%}*/0; i++) {
 		if(data + i > data_end)
-			break;
+			return XDP_ABORTED;
 		xor ^= data[i];
 	}
 
