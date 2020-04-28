@@ -18,6 +18,8 @@ $(NAME_USER): $(NAME_USER).c
 unload:
 	../xdp_loader/simple_loader -d $(IF) -u
 
+build: $(NAME).o
+
 dump: $(NAME).o
 	llvm-objdump -S -no-show-raw-insn $(NAME).o
 

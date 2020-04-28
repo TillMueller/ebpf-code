@@ -8,7 +8,7 @@ struct bpf_map_def SEC("maps") xdp_loop_map = {
 	.type        = BPF_MAP_TYPE_PERCPU_ARRAY,
 	.key_size    = sizeof(int),
 	.value_size  = sizeof(unsigned char),
-	.max_entries = 1,
+	.max_entries = BYTES,
 };
 
 SEC("xdp")
@@ -16,19 +16,17 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 	unsigned char* data = (void *)(long)ctx->data;
 	unsigned char* data_end = (void *)(long)ctx->data_end;
 
-	unsigned char xor = 0;
-
 	if(data + BYTES > data_end)
 		return XDP_ABORTED;
 
 	#pragma unroll
 	for(int i = 0; i < BYTES; i++) {
-		xor ^= data[i];
+		int tmp = i;
+		unsigned char* val = bpf_map_lookup_elem(&xdp_loop_map, &tmp);
+		if(!val)
+			return XDP_ABORTED;
+		*val = data[i];
 	}
-
-	int key = 0;
-	unsigned char* val = bpf_map_lookup_elem(&xdp_loop_map, &key);
-	*val = xor;
 
 	unsigned char tmp;
 	for(int i = 0; i < 6; i++) {

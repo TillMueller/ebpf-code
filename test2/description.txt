@@ -1,1 +1,1 @@
-Testing a loop through the whole packet - this probably won't even works because loops are not allowed
+Do a defined number of boundary checks to measure their performance impact

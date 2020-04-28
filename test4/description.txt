@@ -1,1 +1,1 @@
-Read through defined part of packet, but do the boundary checks only once at the beginning
+Like test3 but do only one boundary check for all bytes of the packet
