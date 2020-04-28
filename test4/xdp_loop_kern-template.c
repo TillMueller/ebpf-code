@@ -4,6 +4,13 @@
 
 #define BYTES /*{%BYTE_COUNT%}*/0
 
+struct bpf_map_def SEC("maps") xdp_loop_map = {
+	.type        = BPF_MAP_TYPE_PERCPU_ARRAY,
+	.key_size    = sizeof(int),
+	.value_size  = sizeof(unsigned char),
+	.max_entries = 1,
+};
+
 SEC("xdp")
 int  xdp_prog_loop(struct xdp_md *ctx) {
 	unsigned char* data = (void *)(long)ctx->data;
@@ -18,6 +25,10 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 	for(int i = 0; i < BYTES; i++) {
 		xor ^= data[i];
 	}
+
+	int key = 0;
+	unsigned char* val = bpf_map_lookup_elem(&xdp_loop_map, &key);
+	*val = xor;
 
 	unsigned char tmp;
 	for(int i = 0; i < 6; i++) {
