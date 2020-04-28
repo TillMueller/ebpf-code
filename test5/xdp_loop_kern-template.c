@@ -17,20 +17,17 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 	unsigned char* data = (void *)(long)ctx->data;
 	unsigned char* data_end = (void *)(long)ctx->data_end;
 
-	unsigned char xor = 0;
-
-	#pragma unroll
-	for(int i = 0; i < BYTES; i++) {
-		if(data + i > data_end)
-			return XDP_ABORTED;
-		xor += data[i];
-	}
-
 	int key = 0;
 	unsigned char* val = bpf_map_lookup_elem(&xdp_loop_map, &key);
 	if(!val)
 		return XDP_ABORTED;
-	*val = xor;
+
+	#pragma unroll
+	for(int i = 0; i < BYTES; i++) {
+		if(data + i + 1 > data_end)
+			return XDP_ABORTED;
+		*val += data[i];
+	}
 
 	unsigned char tmp;
 	for(int i = 0; i < 6; i++) {
