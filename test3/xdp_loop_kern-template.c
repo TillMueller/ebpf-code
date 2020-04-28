@@ -2,11 +2,13 @@
 #include <linux/bpf.h>
 #include <bpf_helpers.h>
 
+#define BYTES /*{%BYTE_COUNT%}*/0
+
 struct bpf_map_def SEC("maps") xdp_loop_map = {
 	.type        = BPF_MAP_TYPE_PERCPU_ARRAY,
 	.key_size    = sizeof(int),
 	.value_size  = sizeof(unsigned char),
-	.max_entries = /*{%LOOP_COUNT%}*/0,
+	.max_entries = BYTES,
 };
 
 SEC("xdp")
@@ -15,7 +17,7 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 	unsigned char* data_end = (void *)(long)ctx->data_end;
 
 	#pragma unroll
-	for(int i = 0; i < /*{%LOOP_COUNT%}*/0; i++) {
+	for(int i = 0; i < BYTES; i++) {
 		if(data + i + 8 > data_end)
 			return XDP_ABORTED;
 		int tmp = i;

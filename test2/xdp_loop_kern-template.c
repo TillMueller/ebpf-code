@@ -2,6 +2,8 @@
 #include <linux/bpf.h>
 #include <bpf_helpers.h>
 
+#define BYTES /*{%BYTE_COUNT%}*/0
+
 SEC("xdp")
 int  xdp_prog_loop(struct xdp_md *ctx) {
 	unsigned char* data = (void *)(long)ctx->data;
@@ -10,7 +12,7 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 	unsigned char xor = 0;
 
 	#pragma unroll
-	for(int i = 0; i < /*{%LOOP_COUNT%}*/0; i++) {
+	for(int i = 0; i < BYTES; i++) {
 		if(data + i > data_end)
 			return XDP_ABORTED;
 		xor ^= data[i];
