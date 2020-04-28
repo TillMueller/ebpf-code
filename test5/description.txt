@@ -1,0 +1,1 @@
+Only read bytes from the packet in a defined number - can be compared to reading the same number of bytes from a map to see if one is faster
