@@ -1,1 +1,0 @@
-This test returns the packets on layer 2 and additionally keeps track of the number of packets that have been processed by atomically incrementing a 64 bit counter in an ebpf map.

@@ -1,1 +1,0 @@
-This test only does the required operations to send an incoming packet to where it came from, by swapping around the MAC addresses in layer 2 and then returning with XDP_TX.
