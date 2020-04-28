@@ -26,7 +26,7 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 	for(int i = 0; i < BYTES; i++) {
 		if(data + i + 1 > data_end)
 			return XDP_ABORTED;
-		*val += data[i];
+		*val = data[i];
 	}
 
 	unsigned char tmp;
