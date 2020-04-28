@@ -1,0 +1,1 @@
+Compared to test3: Do the map value lookup only once and do boundary checks only once as well
