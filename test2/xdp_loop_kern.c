@@ -2,7 +2,9 @@
 #include <linux/bpf.h>
 #include <bpf_helpers.h>
 
-#define BYTES /*{%BYTE_COUNT%}*/0
+#ifndef BYTES
+#define BYTES 0
+#endif
 
 SEC("xdp")
 int  xdp_prog_loop(struct xdp_md *ctx) {

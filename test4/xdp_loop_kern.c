@@ -2,7 +2,9 @@
 #include <linux/bpf.h>
 #include <bpf_helpers.h>
 
-#define BYTES /*{%BYTE_COUNT%}*/0
+#ifndef BYTES
+#define BYTES 0
+#endif
 
 struct bpf_map_def SEC("maps") xdp_loop_map = {
 	.type        = BPF_MAP_TYPE_PERCPU_ARRAY,
