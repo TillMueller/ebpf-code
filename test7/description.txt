@@ -1,1 +1,1 @@
-Loop through specified part of the packet and write the bytes to a PERCPU_HASH to measure performance impact of reads and writes and compare it to PERCPU_ARRAY
+Loop through specified part of the packet and write the bytes to a PERCPU_HASH to measure performance impact of reads and writes and compare it to PERCPU_ARRAY (test3)
