@@ -20,13 +20,11 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 
 	unsigned char init_val = 0;
 	int key = 0;
-	
+
 	unsigned char* val = bpf_map_lookup_elem(&xdp_loop_map, &key);
 	if(!val) {
 		bpf_map_update_elem(&xdp_loop_map, &key, &init_val, BPF_ANY);
-		val = bpf_map_lookup_elem(&xdp_loop_map, &key);
-		if(!val)
-			return XDP_ABORTED;
+		return XDP_ABORTED;
 	}
 
 	#pragma unroll

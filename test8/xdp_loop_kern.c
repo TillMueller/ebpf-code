@@ -28,9 +28,7 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 		unsigned char* val = bpf_map_lookup_elem(&xdp_loop_map, &tmp);
 		if(!val) {
 			bpf_map_update_elem(&xdp_loop_map, &tmp, &init_val, BPF_ANY);
-			val = bpf_map_lookup_elem(&xdp_loop_map, &tmp);
-			if(!val)
-				return XDP_ABORTED;
+			return XDP_ABORTED;
 		}
 		*val = data[i - 1];
 	}
