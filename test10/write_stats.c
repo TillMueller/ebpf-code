@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
             fflush(stdout);
             return 1;
         }
-        printf("packets: %lld\n", value);
+        printf("packets: %d\n", value);
         fflush(stdout);
     }
 }

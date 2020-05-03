@@ -2,8 +2,6 @@
 #include <linux/bpf.h>
 #include <bpf_helpers.h>
 
-#include "common_kern_user.h"
-
 struct bpf_map_def __attribute__ ((section ("maps"))) xdp_stats_map = {
 	.type        = BPF_MAP_TYPE_ARRAY,
 	.key_size    = sizeof(int),
