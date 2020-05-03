@@ -1,1 +1,1 @@
-compare to test7, we use a MAP_TYPE_ARRAY in both, but access the map in different ways
+compare to test7, we use a MAP_TYPE_HASH in both, but access the map in different ways

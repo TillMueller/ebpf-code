@@ -1,0 +1,1 @@
+compare to test8, we only do the map_lookup once
