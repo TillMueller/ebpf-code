@@ -10,7 +10,7 @@ struct bpf_map_def SEC("maps") xdp_loop_map = {
 	.type        = BPF_MAP_TYPE_PERCPU_HASH,
 	.key_size    = sizeof(int),
 	.value_size  = sizeof(unsigned char),
-	.max_entries = BYTES,
+	.max_entries = 1,
 };
 
 SEC("xdp")
