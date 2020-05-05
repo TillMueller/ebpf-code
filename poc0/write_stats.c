@@ -26,10 +26,13 @@ int main(int argc, char* argv[]) {
     for(;;) {
         usleep(1000000);
         int interval = 0;
+        for(int i = 0; i < NUMBER_OF_INTERVALS; i++) {
+            data[i] = 0;
+        }
         for(int i = MIN_SIZE; i <= MAX_SIZE; i++) {
             if(intervals[interval] < i) {
                 interval++;
-                if(interval > NUMBER_OF_INTERVALS - 1) {
+                if(interval >= NUMBER_OF_INTERVALS) {
                     printf("interval too large: %d, exiting\n", interval);
                     fflush(stdout);
                     return 1;
