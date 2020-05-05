@@ -14,7 +14,7 @@ int  xdp_stats(struct xdp_md *ctx) {
 	unsigned char* data_end = (void *)(long)ctx->data_end;
 
 	int length = data_end - data;
-	if(length < 0 || length > 256)
+	if(data_end < data || length == 0 || length > 256)
 		return XDP_ABORTED;
 
 	int key = length - 1;
