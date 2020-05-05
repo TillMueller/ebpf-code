@@ -1,0 +1,41 @@
+clang -S -target bpf -D __BPF_TRACING__ -I../xdp_loader/libbpf/src/ -Wall -Wno-unused-value -Wno-pointer-sign -Wno-compare-distinct-pointer-types -Werror -O2 -emit-llvm -DBYTES=4 -c -g -o xdp_loop_kern.ll xdp_loop_kern.c
+llc -march=bpf -filetype=obj -o xdp_loop_kern.o xdp_loop_kern.ll
+llvm-objdump -S -no-show-raw-insn xdp_loop_kern.o
+
+xdp_loop_kern.o:	file format ELF64-BPF
+
+Disassembly of section xdp:
+xdp_prog_loop:
+; int  xdp_prog_loop(struct xdp_md *ctx) {
+       0:	r2 = *(u32 *)(r1 + 4)
+; unsigned char* data = (void *)(long)ctx->data;
+       1:	r1 = *(u32 *)(r1 + 0)
+; if(data + i > data_end)
+       2:	r4 = r1
+       3:	r4 += 3
+       4:	r0 = 0
+       5:	r3 = 0
+       6:	if r4 > r2 goto +1 <LBB0_2>
+       7:	r3 = 3
+
+LBB0_2:
+       8:	r5 = r1
+       9:	r5 += 2
+      10:	r4 = 0
+      11:	if r5 > r2 goto +1 <LBB0_4>
+      12:	r4 = r3
+
+LBB0_4:
+      13:	r5 = r1
+      14:	r5 += 1
+      15:	r3 = 0
+      16:	if r5 > r2 goto +1 <LBB0_6>
+      17:	r3 = r4
+
+LBB0_6:
+      18:	if r1 > r2 goto +1 <LBB0_8>
+      19:	r0 = r3
+
+LBB0_8:
+; }
+      20:	exit
