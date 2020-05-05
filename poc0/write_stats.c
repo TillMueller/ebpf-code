@@ -4,7 +4,8 @@
 #include <libbpf.h>
 
 #define MAX_PATH_LENGTH 4096
-#define NUMBER_OF_INTERVALS 10
+#define NUMBER_OF_INTERVALS 2
+#define MIN_SIZE 64
 #define MAX_SIZE 256
 
 int main(int argc, char* argv[]) {
@@ -18,14 +19,15 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    int intervals[] = {0, 1, 2, 4, 8, 16, 32, 64, 128, 256};
+    // intervals: 64; 65 -> 128; 129 -> 256
+    int intervals[] = {64, 128, 256};
     long long unsigned int data[NUMBER_OF_INTERVALS] = { 0 };
 
     for(;;) {
         usleep(1000000);
         int interval = 0;
-        for(int i = 0; i < MAX_SIZE; i++) {
-            if(intervals[interval] <= i) {
+        for(int i = MIN_SIZE; i < MAX_SIZE; i++) {
+            if(intervals[interval] < i) {
                 interval++;
                 if(interval > NUMBER_OF_INTERVALS - 1) {
                     printf("interval too large: %d, exiting\n", interval);
@@ -43,7 +45,8 @@ int main(int argc, char* argv[]) {
             }
             data[interval] += value;
         }
-        for(int i = 0; i < NUMBER_OF_INTERVALS - 1; i++)
+        printf("       064 : %llu\n", data[0]);
+        for(int i = 0; i < NUMBER_OF_INTERVALS; i++)
             printf("(%03d - %03d]: %llu\n", intervals[i], intervals[i + 1], data[i + 1]);
         printf("\n");
         fflush(stdout);
