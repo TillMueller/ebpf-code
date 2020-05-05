@@ -5,6 +5,7 @@
 
 #define MAX_PATH_LENGTH 4096
 #define NUMBER_OF_INTERVALS 10
+#define MAX_SIZE 256
 
 int main(int argc, char* argv[]) {
     int mapfd;
@@ -23,7 +24,7 @@ int main(int argc, char* argv[]) {
     for(;;) {
         usleep(1000000);
         int interval = 0;
-        for(int i = 0; i < 256; i++) {
+        for(int i = 0; i < MAX_SIZE; i++) {
             if(intervals[interval] <= i) {
                 interval++;
                 if(interval > NUMBER_OF_INTERVALS - 1) {
@@ -43,7 +44,7 @@ int main(int argc, char* argv[]) {
             data[interval] += value;
         }
         for(int i = 0; i < NUMBER_OF_INTERVALS - 1; i++)
-            printf("interval (%03d - %03d]: %llu\n", intervals[i], intervals[i + 1], data[i + 1]);
+            printf("(%03d - %03d]: %llu\n", intervals[i], intervals[i + 1], data[i + 1]);
         printf("\n");
         fflush(stdout);
     }
