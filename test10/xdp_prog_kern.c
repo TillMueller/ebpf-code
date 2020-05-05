@@ -1,15 +1,14 @@
-/* SPDX-License-Identifier: GPL-2.0 */
 #include <linux/bpf.h>
 #include <bpf_helpers.h>
 
-struct bpf_map_def __attribute__ ((section ("maps"))) xdp_stats_map = {
+struct bpf_map_def SEC("maps") xdp_stats_map = {
 	.type        = BPF_MAP_TYPE_ARRAY,
 	.key_size    = sizeof(int),
 	.value_size  = sizeof(int),
 	.max_entries = 1,
 };
 
-__attribute__ ((section ("xdp_stats1")))
+SEC("xdp_stats1")
 int  xdp_stats1_func(struct xdp_md *ctx) {
 	unsigned char* data = (void *)(long)ctx->data;
 	unsigned char* data_end = (void *)(long)ctx->data_end;
@@ -31,4 +30,4 @@ int  xdp_stats1_func(struct xdp_md *ctx) {
 	return XDP_TX;
 }
 
-char _license[] __attribute__ ((section ("GPL"))) = "GPL";
+char _license[] SEC("license") = "GPL";

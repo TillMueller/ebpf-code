@@ -31,14 +31,6 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 		*val = data[i];
 	}
 
-	unsigned char tmp;
-	for(int i = 0; i < 6; i++) {
-		if(data + i + 8 > data_end)
-			return XDP_ABORTED;
-		tmp = data[i];
-		data[i] = data[i + 6];
-		data[i + 6] = tmp;
-	}
 	return XDP_TX;
 }
 
