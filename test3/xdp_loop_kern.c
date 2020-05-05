@@ -19,7 +19,7 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 
 	#pragma unroll
 	for(int i = 0; i < BYTES; i++) {
-		if(data + i + 8 > data_end)
+		if(data + i + 1 > data_end)
 			return XDP_ABORTED;
 		int tmp = i;
 		unsigned char* val = bpf_map_lookup_elem(&xdp_loop_map, &tmp);
