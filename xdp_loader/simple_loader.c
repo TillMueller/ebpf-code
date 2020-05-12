@@ -4,6 +4,7 @@
 #include <net/if.h>
 #include <bpf.h>
 #include <libbpf.h>
+#include <libbpf.c>
 #include <getopt.h>
 
 enum action{NONE, LOAD, UNLOAD};
@@ -53,6 +54,7 @@ int main (int argc, char* argv[]) {
                 }
                 shared_map = true;
                 shared_map_name = optarg;
+                break;
             case 'h':
                 printf("Usage: ./simple_loader -d <device> [-f <filename>] {-l | -u} [-m | -s <mapname>]\n");
                 return 0;
@@ -100,7 +102,14 @@ int main (int argc, char* argv[]) {
                     return bpf_set_link_xdp_fd(ifindex, -1, 0);
                 }
                 if(shared_map) {
-                        int mapfd = bpf_obj_get(pin_dir_name);
+                        struct bpf_map* map = bpf_map__next(NULL, bpf_obj);
+                        char pin_full_path[PATH_MAX_LENGTH];
+                        int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, map->name);
+                        if(fullpathlength < 0) {
+                            printf("Could not generate file name for map reuse, exiting\n");
+                            return bpf_set_link_xdp_fd(ifindex, -1, 0);
+                        }
+                        int mapfd = bpf_obj_get(pin_full_path);
                         if(mapfd < 0) {
                             // Map is not pinned, therefore, we need to pin it now
                             error = bpf_object__pin_maps(bpf_obj, pin_dir_name);
@@ -112,7 +121,6 @@ int main (int argc, char* argv[]) {
                             // we only try to pin the first map in the object
                             // this should be easily extendable to many maps
                             // using bpf_object__for_each_map
-                            struct bpf_map* map = bpf_map__next(NULL, bpf_obj);
                             error = bpf_map__reuse_fd(map, mapfd);
                             if(error) {
                                 printf("Could not reuse map fd, exiting\n");
