@@ -100,7 +100,7 @@ int main (int argc, char* argv[]) {
                     int mapfd = bpf_obj_get(pin_full_path);
                     if(mapfd > 0) {
                         // Map is already pinned, reuse the file descriptor
-                        printf("Reuse pin: %d\n", mapfd);
+                        printf("Reusing pin: %d\n", mapfd);
                         error = bpf_map__reuse_fd(map, mapfd);
                         if(error) {
                             printf("Could not reuse map fd, exiting\n");
@@ -148,7 +148,7 @@ int main (int argc, char* argv[]) {
                 }
             }
             if(map) {
-                // Clean up existing maps that might interfere, errors if there are none
+                // Clean up existing maps that might interfere
                 struct bpf_map* map;
                 bpf_map__for_each(map, bpf_obj) {
                     char pin_full_path[PATH_MAX_LENGTH];
@@ -160,6 +160,7 @@ int main (int argc, char* argv[]) {
                     int mapfd = bpf_obj_get(pin_full_path);
                     if(mapfd > 0) {
                         // Map is pinned, unpin it now so we can repin it
+                        printf("Unpinning: %s\n", pin_full_path);
                         error = bpf_map__unpin(map, pin_full_path);
                         if(error) {
                             printf("Could not unpin map, exiting\n");
