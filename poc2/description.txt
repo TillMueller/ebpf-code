@@ -1,0 +1,8 @@
+Simple IPv4 TCP and UDP port firewall
+configured via a second interface, using this command:
+echo '000004d2' | xxd -r -p | nc -u localhost 4242
+1 byte response code (set to zero)
+1 byte command (1 for allow, 0 for block)
+2 bytes port
+
+read by ebpf program and passed to other ebpf program using a shared map
