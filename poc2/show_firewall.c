@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
             if(value) {
-                printf("%d BLOCKED\n", i);
+                printf("%d ALLOWED\n", i);
             }
         }
         printf("\n");
