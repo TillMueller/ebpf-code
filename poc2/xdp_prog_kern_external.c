@@ -38,10 +38,10 @@ int xdp_firewall_external(struct xdp_md *ctx) {
     if(data + total_size > data_end)
         return XDP_DROP;
 	
-	uint16_t port = -1;
+	uint16_t port = 0;
 
 	switch(iphdr->protocol) {
-		case IPPROTO_UDP:
+		case IPPROTO_UDP: {
 			struct udphdr* udphdr = (void*) &data[total_size];
 			total_size += sizeof(struct udphdr);
 
@@ -50,8 +50,8 @@ int xdp_firewall_external(struct xdp_md *ctx) {
 			
 			port = ntohs(udphdr->dest);
 			break;
-
-		case IPPROTO_TCP:
+		}
+		case IPPROTO_TCP: {
 			struct tcphdr* tcphdr = (void*) &data[total_size];
 			total_size += sizeof(struct tcphdr);
 
@@ -60,9 +60,10 @@ int xdp_firewall_external(struct xdp_md *ctx) {
 			
 			port = ntohs(tcphdr->dest);
 			break;
+		}
 	}
 
-	if(port == -1)
+	if(!port)
 		return XDP_ABORTED;
 
 	bool* val = bpf_map_lookup_elem(&xdp_firewall_rules_map, &port);
