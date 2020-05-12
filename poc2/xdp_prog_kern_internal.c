@@ -69,7 +69,7 @@ int xdp_firewall_internal(struct xdp_md *ctx) {
 		return XDP_ABORTED;
 	
 	//command: 0 -> block; 1 -> allow
-	val = (cmd_data->command & 1);
+	*val = (cmd_data->command & 1);
 
 	//command was successful
 	//TODO maybe we should send something back for some cases where it was not
