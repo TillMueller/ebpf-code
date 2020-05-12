@@ -111,8 +111,8 @@ int main (int argc, char* argv[]) {
                         int mapfd = bpf_obj_get(pin_full_path);
                         if(mapfd < 0) {
                             // Map is not pinned, therefore, we need to pin it now
-                            printf("New pin in folder %s\n", pin_dir_name);
-                            error = bpf_map__pin(map, pin_dir_name);
+                            printf("New pin: %s\n", pin_full_path);
+                            error = bpf_map__pin(map, pin_full_path);
                             if(error) {
                                 printf("Could not pin maps, exiting\n");
                                 return bpf_set_link_xdp_fd(ifindex, -1, 0);
