@@ -4,7 +4,6 @@
 #include <net/if.h>
 #include <bpf.h>
 #include <libbpf.h>
-#include <libbpf.c>
 #include <getopt.h>
 
 enum action{NONE, LOAD, UNLOAD};
@@ -104,7 +103,7 @@ int main (int argc, char* argv[]) {
                 if(shared_map) {
                         struct bpf_map* map = bpf_map__next(NULL, bpf_obj);
                         char pin_full_path[PATH_MAX_LENGTH];
-                        int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, map->name);
+                        int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, bpf_map__name(map));
                         if(fullpathlength < 0) {
                             printf("Could not generate file name for map reuse, exiting\n");
                             return bpf_set_link_xdp_fd(ifindex, -1, 0);
