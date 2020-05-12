@@ -1,29 +1,27 @@
-NAME=xdp_prog_kern
+NAME=xdp_prog_kern_external
+NAME2=xdp_prog_kern_internal
 NAME_USER=show_firewall
 IF=lo
-.PHONY: load unload build dump clean
+.PHONY: build dump clean
 
-load: $(NAME).o $(NAME_USER)
-	../xdp_loader/simple_loader -d $(IF) -f $(NAME).o -l -m
-	sleep 3
-	./write_stats $(IF)
-
-$(NAME).o: $(NAME).c
+$(NAME).o $(NAME2).o: $(NAME).c $(NAME2).c
 	clang -S -target bpf -D __BPF_TRACING__ -I../xdp_loader/libbpf/src/ -Wall -Wno-unused-value -Wno-pointer-sign -Wno-compare-distinct-pointer-types -Werror -O2 -emit-llvm -c -g -o $(NAME).ll $(NAME).c
 	llc -march=bpf -filetype=obj -o $(NAME).o $(NAME).ll
+	clang -S -target bpf -D __BPF_TRACING__ -I../xdp_loader/libbpf/src/ -Wall -Wno-unused-value -Wno-pointer-sign -Wno-compare-distinct-pointer-types -Werror -O2 -emit-llvm -c -g -o $(NAME2).ll $(NAME2).c
+	llc -march=bpf -filetype=obj -o $(NAME2).o $(NAME2).ll
 
 $(NAME_USER): $(NAME_USER).c
 	gcc -Wall -I../xdp_loader/libbpf/src/ -L../xdp_loader/libbpf/src/ -o $(NAME_USER) $(NAME_USER).c -lbpf -lelf
 
-unload:
-	../xdp_loader/simple_loader -d $(IF) -u
+build: $(NAME).o $(NAME2).o
 
-build: $(NAME).o
-
-dump: $(NAME).o
+dump: $(NAME).o $(NAME2).o
 	llvm-objdump -S -no-show-raw-insn $(NAME).o
+	llvm-objdump -S -no-show-raw-insn $(NAME2).o
 
 clean:
 	rm $(NAME_USER)
 	rm $(NAME).ll
 	rm $(NAME).o
+	rm $(NAME2).ll
+	rm $(NAME2).o
