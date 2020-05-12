@@ -15,7 +15,7 @@ struct cmd_data {
 
 struct bpf_map_def SEC("maps") xdp_firewall_rules_map = {
 	.type        = BPF_MAP_TYPE_ARRAY,
-	.key_size    = sizeof(uint16_t),
+	.key_size    = sizeof(int),
 	.value_size  = sizeof(bool),
 	.max_entries = 65536,
 };

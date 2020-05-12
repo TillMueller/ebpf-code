@@ -10,7 +10,7 @@
 
 struct bpf_map_def SEC("maps") xdp_firewall_rules_map = {
 	.type        = BPF_MAP_TYPE_ARRAY,
-	.key_size    = sizeof(uint16_t),
+	.key_size    = sizeof(int),
 	.value_size  = sizeof(bool),
 	.max_entries = 65536,
 };
@@ -36,7 +36,7 @@ int xdp_firewall_external(struct xdp_md *ctx) {
     if(data + total_size > data_end)
         return XDP_DROP;
 	
-	uint16_t port = 0;
+	int port = 0;
 
 	switch(iphdr->protocol) {
 		case IPPROTO_UDP: {
