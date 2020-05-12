@@ -77,64 +77,34 @@ int main (int argc, char* argv[]) {
                 printf("Device not found, exiting\n");
                 return 1;
             }
-            int error;
-            bool pin_maps = NULL;
+            int error, pathlength;
             char pin_dir_name[PATH_MAX_LENGTH];
             struct bpf_object* bpf_obj = bpf_object__open(filename);
-
-            if(map || shared_map) {
-                int pathlength;
-                if(shared_map) {
-                    pathlength = snprintf(pin_dir_name, PATH_MAX_LENGTH, "%s/%s", PIN_BASE_DIR, shared_map_name);
-                } else {
-                    pathlength = snprintf(pin_dir_name, PATH_MAX_LENGTH, "%s/%s", PIN_BASE_DIR, devicename);
-                }
-                if(pathlength < 0) {
-                    printf("Could not generate directory name for map pinning, exiting\n");
-                    return 1;
-                }
-                if(shared_map) {
-                    struct bpf_map* map;
-                    bpf_map__for_each(map, bpf_obj) {
-                        char pin_full_path[PATH_MAX_LENGTH];
-                        int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, bpf_map__name(map));
-                        if(fullpathlength < 0) {
-                            printf("Could not generate file name for map reuse, exiting\n");
+            if(map)
+                pathlength = snprintf(pin_dir_name, PATH_MAX_LENGTH, "%s/%s", PIN_BASE_DIR, devicename);
+            if(shared_map)
+                pathlength = snprintf(pin_dir_name, PATH_MAX_LENGTH, "%s/%s", PIN_BASE_DIR, shared_map_name);
+            if(pathlength < 0) {
+                printf("Could not generate directory name for map pinning, exiting\n");
+                return 1;
+            }
+            if(shared_map) {
+                struct bpf_map* map;
+                bpf_map__for_each(map, bpf_obj) {
+                    char pin_full_path[PATH_MAX_LENGTH];
+                    int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, bpf_map__name(map));
+                    if(fullpathlength < 0) {
+                        printf("Could not generate file name for map reuse, exiting\n");
+                        return 1;
+                    }
+                    int mapfd = bpf_obj_get(pin_full_path);
+                    if(mapfd > 0) {
+                        // Map is already pinned, reuse the file descriptor
+                        printf("Reuse pin: %d\n", mapfd);
+                        error = bpf_map__reuse_fd(map, mapfd);
+                        if(error) {
+                            printf("Could not reuse map fd, exiting\n");
                             return 1;
-                        }
-                        int mapfd = bpf_obj_get(pin_full_path);
-                        if(mapfd < 0) {
-                            if(pin_maps != NULL && !pin_maps) {
-                                // TODO: Support doing this
-                                printf("Cannot mix reuse and new pinning of maps, exiting\n");
-                                return 1;
-                            }
-                            pin_maps = true;
-                            /*
-                            // This code can be used to pin one map.
-                            // However, pinning has to be done _after_ the object has been loaded
-                            // Map is not pinned, therefore, we need to pin it now
-                            printf("New pin: %s\n", pin_full_path);
-                            error = bpf_map__pin(map, pin_full_path);
-                            if(error) {
-                                printf("Could not pin maps, exiting\n");
-                                return 1;
-                            }
-                            */
-                        } else {
-                            if(pin_maps != NULL && pin_maps) {
-                                // TODO: See above
-                                printf("Cannot mix reuse and new pinning of maps, exiting\n");
-                                return 1;
-                            }
-                            // Map is already pinned, reuse the file descriptor
-                            printf("Reuse pin: %d\n", mapfd);
-                            error = bpf_map__reuse_fd(map, mapfd);
-                            if(error) {
-                                printf("Could not reuse map fd, exiting\n");
-                                return 1;
-                            }
-                            pin_maps = false;
                         }
                     }
                 }
@@ -156,15 +126,53 @@ int main (int argc, char* argv[]) {
                 printf("Could not attach program to device, exiting\n");
                 return 1;
             }
-            if(pin_maps || map) {
-                    // Clean up existing maps that might interfere, errors if there are none
-                    // TODO: We should check here wheather a map is pinned before trying to unpin it
-                    bpf_object__unpin_maps(bpf_obj, pin_dir_name);
-                    error = bpf_object__pin_maps(bpf_obj, pin_dir_name);
-                    if(error) {
-                        printf("Could not pin maps, exiting\n");
+            if(shared_map) {
+                struct bpf_map* map;
+                bpf_map__for_each(map, bpf_obj) {
+                    char pin_full_path[PATH_MAX_LENGTH];
+                    int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, bpf_map__name(map));
+                    if(fullpathlength < 0) {
+                        printf("Could not generate file name for map pinning, exiting\n");
                         return 1;
                     }
+                    int mapfd = bpf_obj_get(pin_full_path);
+                    if(mapfd < 0) {
+                        // Map is not pinned, therefore we need to pin it now
+                        printf("New pin: %s\n", pin_full_path);
+                        error = bpf_map__pin(map, pin_full_path);
+                        if(error) {
+                            printf("Could not pin map, exiting\n");
+                            return 1;
+                        }
+                    }
+                }
+            }
+            if(map) {
+                // Clean up existing maps that might interfere, errors if there are none
+                struct bpf_map* map;
+                bpf_map__for_each(map, bpf_obj) {
+                    char pin_full_path[PATH_MAX_LENGTH];
+                    int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, bpf_map__name(map));
+                    if(fullpathlength < 0) {
+                        printf("Could not generate file name for map unpinning, exiting\n");
+                        return 1;
+                    }
+                    int mapfd = bpf_obj_get(pin_full_path);
+                    if(mapfd > 0) {
+                        // Map is pinned, unpin it now so we can repin it
+                        error = bpf_map__unpin(map, pin_full_path);
+                        if(error) {
+                            printf("Could not unpin map, exiting\n");
+                            return 1;
+                        }
+                    } 
+                }
+                bpf_object__unpin_maps(bpf_obj, pin_dir_name);
+                error = bpf_object__pin_maps(bpf_obj, pin_dir_name);
+                if(error) {
+                    printf("Could not pin maps, exiting\n");
+                    return 1;
+                }
             }
             break;
         case UNLOAD:
