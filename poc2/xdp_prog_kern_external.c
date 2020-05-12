@@ -20,8 +20,6 @@ int xdp_firewall_external(struct xdp_md *ctx) {
 	unsigned char* data = (void *)(long)ctx->data;
 	unsigned char* data_end = (void *)(long)ctx->data_end;
 
-	volatile int length = data_end - data;
-
     struct ethhdr* ethhdr = (void*) &data[0];
     int total_size = sizeof(struct ethhdr);
 
