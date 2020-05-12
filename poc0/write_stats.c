@@ -18,6 +18,7 @@ int main(int argc, char* argv[]) {
         fflush(stdout);
         return 1;
     }
+    printf("Using file descriptor: %d\n", mapfd);
 
     // intervals: 60 -> 64; 65 -> 128; 129 -> 256
     int intervals[] = {64, 128, 256};
