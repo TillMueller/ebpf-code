@@ -111,6 +111,7 @@ int main (int argc, char* argv[]) {
                         int mapfd = bpf_obj_get(pin_full_path);
                         if(mapfd < 0) {
                             // Map is not pinned, therefore, we need to pin it now
+                            printf("New pin in folder %s\n", pin_dir_name);
                             error = bpf_object__pin_maps(bpf_obj, pin_dir_name);
                             if(error) {
                                 printf("Could not pin maps, exiting\n");
@@ -120,6 +121,7 @@ int main (int argc, char* argv[]) {
                             // we only try to pin the first map in the object
                             // this should be easily extendable to many maps
                             // using bpf_object__for_each_map
+                            printf("Reuse pin: %s\n", mapfd);
                             error = bpf_map__reuse_fd(map, mapfd);
                             if(error) {
                                 printf("Could not reuse map fd, exiting\n");
