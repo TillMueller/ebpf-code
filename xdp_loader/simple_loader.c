@@ -16,8 +16,10 @@ int main (int argc, char* argv[]) {
     char* filename = NULL;
     enum action action = NONE;
     bool map = false;
+    bool shared_map = false;
+    char* shared_map_name = NULL;
     char c;
-    while((c = getopt(argc, argv, "d:f:luhm")) != -1) {
+    while((c = getopt(argc, argv, "d:f:luhms:")) != -1) {
         switch(c) {
             case 'd':
                 devicename = optarg;
@@ -40,10 +42,19 @@ int main (int argc, char* argv[]) {
                 action = UNLOAD;
                 break;
             case 'm':
+                if(shared_map) {
+                    printf("-m and -s cannot be used together, exiting\n");
+                }
                 map = true;
                 break;
+            case 's':
+                if(map) {
+                    printf("-m and -s cannot be used together, exiting\n");
+                }
+                shared_map = true;
+                shared_map_name = optarg;
             case 'h':
-                printf("Usage: ./simple_loader -d <device> [-f <filename>] {-l | -u} [-m]\n");
+                printf("Usage: ./simple_loader -d <device> [-f <filename>] {-l | -u} [-m | -s <mapname>]\n");
                 return 0;
         }
     }
@@ -76,20 +87,46 @@ int main (int argc, char* argv[]) {
                 printf("Could not attach program to device, exiting\n");
                 return 1;
             }
-            if(map) {
+            if(map || shared_map) {
                 int pathlength;
                 char pin_dir_name[PATH_MAX_LENGTH];
-                pathlength = snprintf(pin_dir_name, PATH_MAX_LENGTH, "%s/%s", PIN_BASE_DIR, devicename);
+                if(shared_map) {
+                    pathlength = snprintf(pin_dir_name, PATH_MAX_LENGTH, "%s/%s", PIN_BASE_DIR, shared_map_name);
+                } else {
+                    pathlength = snprintf(pin_dir_name, PATH_MAX_LENGTH, "%s/%s", PIN_BASE_DIR, devicename);
+                }
                 if(pathlength < 0) {
                     printf("Could not generate directory name for map pinning, exiting\n");
                     return bpf_set_link_xdp_fd(ifindex, -1, 0);
                 }
-                // Clean up existing maps that might interfere, errors if there are none
-                bpf_object__unpin_maps(bpf_obj, pin_dir_name);
-                error = bpf_object__pin_maps(bpf_obj, pin_dir_name);
-                if(error) {
-                    printf("Could not pin maps, exiting\n");
-                    return bpf_set_link_xdp_fd(ifindex, -1, 0);
+                if(shared_map) {
+                        int mapfd = bpf_obj_get(pin_dir_name);
+                        if(mapfd < 0) {
+                            // Map is not pinned, therefore, we need to pin it now
+                            error = bpf_object__pin_maps(bpf_obj, pin_dir_name);
+                            if(error) {
+                                printf("Could not pin maps, exiting\n");
+                                return bpf_set_link_xdp_fd(ifindex, -1, 0);
+                            }
+                        } else {
+                            // we only try to pin the first map in the object
+                            // this should be easily extendable to many maps
+                            // using bpf_object__for_each_map
+                            struct bpf_map* map = bpf_map__next(NULL, bpf_obj);
+                            error = bpf_map__reuse_fd(map, mapfd);
+                            if(error) {
+                                printf("Could not reuse map fd, exiting\n");
+                                return bpf_set_link_xdp_fd(ifindex, -1, 0);
+                            }
+                        }
+                } else {
+                    // Clean up existing maps that might interfere, errors if there are none
+                    bpf_object__unpin_maps(bpf_obj, pin_dir_name);
+                    error = bpf_object__pin_maps(bpf_obj, pin_dir_name);
+                    if(error) {
+                        printf("Could not pin maps, exiting\n");
+                        return bpf_set_link_xdp_fd(ifindex, -1, 0);
+                    }
                 }
             }
             break;
