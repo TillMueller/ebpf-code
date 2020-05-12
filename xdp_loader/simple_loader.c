@@ -101,8 +101,8 @@ int main (int argc, char* argv[]) {
                     return bpf_set_link_xdp_fd(ifindex, -1, 0);
                 }
                 if(shared_map) {
+                        struct bpf_map* map;
                         bpf_map__for_each(map, bpf_obj) {
-                            struct bpf_map* map = bpf_map__next(NULL, bpf_obj);
                             char pin_full_path[PATH_MAX_LENGTH];
                             int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, bpf_map__name(map));
                             if(fullpathlength < 0) {
