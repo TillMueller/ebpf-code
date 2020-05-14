@@ -14,6 +14,11 @@ enum action{NONE, LOAD, UNLOAD};
 #define PATH_MAX_LENGTH 4096
 #define PIN_BASE_DIR "/sys/fs/bpf"
 
+struct reuseable_map {
+    struct bpf_map* map;
+    int fd;
+};
+
 int main (int argc, char* argv[]) {
     char* devicename = NULL;
     char* filename = NULL;
@@ -89,7 +94,17 @@ int main (int argc, char* argv[]) {
                 return 1;
             }
             if(shared_map) {
+                size_t number_of_maps = 0;
+                // This could be O(1), but there is no obvious way to access bpf_obj->nr_maps from here
+                // We could avoid this whole thing by having a linked list but I am not about to implement one
                 struct bpf_map* map;
+                bpf_map__for_each(map, bpf_obj) {
+                    number_of_maps++;
+                }
+                // This array is to remember which maps we need to reuse
+                // The whole reason why we need this is to avoid altering the data structure we're interating over
+                struct reuseable_map reuseable_map[number_of_maps];
+                int arrayindex = 0;
                 bpf_map__for_each(map, bpf_obj) {
                     const char* map_name = bpf_map__name(map);
                     printf("Checking if map is already pinned: %s\n", map_name);
@@ -103,11 +118,16 @@ int main (int argc, char* argv[]) {
                     if(mapfd > 0) {
                         // Map is already pinned, reuse the file descriptor
                         printf("Reusing pin: %d\n", mapfd);
-                        error = bpf_map__reuse_fd(map, mapfd);
-                        if(error) {
-                            printf("Could not reuse map fd, exiting\n");
-                            return 1;
-                        }
+                        reuseable_map[arrayindex].map = map;
+                        reuseable_map[arrayindex].fd = mapfd;
+                        arrayindex++;
+                    }
+                }
+                for(int i = 0; i < arrayindex; i++) {
+                    error = bpf_map__reuse_fd(reuseable_map[i].map, reuseable_map[i].fd);
+                    if(error) {
+                        printf("Could not reuse map fd %d, exiting\n", reuseable_map[i].fd);
+                        return 1;
                     }
                 }
             }
@@ -164,6 +184,7 @@ int main (int argc, char* argv[]) {
                     int mapfd = bpf_obj_get(pin_full_path);
                     if(mapfd > 0) {
                         // Map is pinned, unpin it now so we can repin it
+                        // This resets the map, which is what we want to for unshared ones
                         printf("Unpinning: %s\n", pin_full_path);
                         error = bpf_map__unpin(map, pin_full_path);
                         if(error) {
