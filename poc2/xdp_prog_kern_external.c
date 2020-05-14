@@ -61,20 +61,14 @@ int xdp_firewall_external(struct xdp_md *ctx) {
 		}
 	}
 
-	if(!port)
-		return XDP_ABORTED;
+	if(port <= 0 || port > 65536)
+		return XDP_DROP;
 
 	bool* val = bpf_map_lookup_elem(&xdp_firewall_rules_map, &port);
 	if (!val)
 		return XDP_ABORTED;
 
-	if(*val) {
-		return XDP_PASS;
-	} else {
-		return XDP_DROP;
-	}
-
-	return XDP_ABORTED;
+	return *val ? XDP_PASS : XDP_DROP;
 }
 
 char _license[] SEC("license") = "GPL";
