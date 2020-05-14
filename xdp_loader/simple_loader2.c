@@ -151,7 +151,6 @@ int main (int argc, char* argv[]) {
             }
             // Second round, pin everything we could not reuse
             if(shared_map) {
-                struct bpf_map* map;
                 for(int i = 0; i < number_of_maps; i++) {
                     if(map_data[i].alreadyPinned)
                         continue;
@@ -162,7 +161,7 @@ int main (int argc, char* argv[]) {
                         return 1;
                     }
                     printf("New pin: %s\n", pin_full_path);
-                    error = bpf_map__pin(map, pin_full_path);
+                    error = bpf_map__pin(map_data[i].map, pin_full_path);
                     if(error) {
                         printf("Could not pin map, exiting\n");
                         return 1;
