@@ -129,8 +129,10 @@ int main (int argc, char* argv[]) {
             if(shared_map) {
                 struct bpf_map* map;
                 bpf_map__for_each(map, bpf_obj) {
+                    char* map_name = bpf_map__name(map);
+                    printf("Found map: %s\n", map_name);
                     char pin_full_path[PATH_MAX_LENGTH];
-                    int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, bpf_map__name(map));
+                    int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, map_name);
                     if(fullpathlength < 0) {
                         printf("Could not generate file name for map pinning, exiting\n");
                         return 1;
