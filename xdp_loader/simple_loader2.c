@@ -14,7 +14,8 @@ enum action{NONE, LOAD, UNLOAD};
 #define PATH_MAX_LENGTH 4096
 #define PIN_BASE_DIR "/sys/fs/bpf"
 
-struct reuseable_map {
+struct map_data {
+    bool alreadyPinned;
     struct bpf_map* map;
     int fd;
 };
@@ -72,7 +73,7 @@ int main (int argc, char* argv[]) {
         case NONE:
             printf("No action given, exiting\n");
             return 1;
-        case LOAD:
+        case LOAD: {
             if (filename == NULL || devicename == NULL) {
                 printf("No filename or device given, exiting\n");
                 return 1;
@@ -93,17 +94,17 @@ int main (int argc, char* argv[]) {
                 printf("Could not generate directory name for map pinning, exiting\n");
                 return 1;
             }
+            size_t number_of_maps = 0;
+            // This array is to remember which maps we need to reuse
+            // The whole reason why we need this is to avoid altering the data structure we're interating over
+            struct map_data map_data[number_of_maps];
             if(shared_map) {
-                size_t number_of_maps = 0;
                 // This could be O(1), but there is no obvious way to access bpf_obj->nr_maps from here
                 // We could avoid this whole thing by having a linked list but I am not about to implement one
                 struct bpf_map* map;
                 bpf_map__for_each(map, bpf_obj) {
                     number_of_maps++;
                 }
-                // This array is to remember which maps we need to reuse
-                // The whole reason why we need this is to avoid altering the data structure we're interating over
-                struct reuseable_map reuseable_map[number_of_maps];
                 int arrayindex = 0;
                 bpf_map__for_each(map, bpf_obj) {
                     const char* map_name = bpf_map__name(map);
@@ -115,18 +116,18 @@ int main (int argc, char* argv[]) {
                         return 1;
                     }
                     int mapfd = bpf_obj_get(pin_full_path);
-                    if(mapfd > 0) {
-                        // Map is already pinned, reuse the file descriptor
-                        printf("Reusing pin: %d\n", mapfd);
-                        reuseable_map[arrayindex].map = map;
-                        reuseable_map[arrayindex].fd = mapfd;
-                        arrayindex++;
-                    }
+                    map_data[arrayindex].map = map;
+                    map_data[arrayindex].fd = mapfd;
+                    map_data[arrayindex].alreadyPinned = (mapfd > 0);
+                    arrayindex++;
                 }
-                for(int i = 0; i < arrayindex; i++) {
-                    error = bpf_map__reuse_fd(reuseable_map[i].map, reuseable_map[i].fd);
+                for(int i = 0; i < number_of_maps; i++) {
+                    if(!map_data[i].alreadyPinned)
+                        continue;
+                    printf("Reusing pin: %d\n", map_data[i].fd);
+                    error = bpf_map__reuse_fd(map_data[i].map, map_data[i].fd);
                     if(error) {
-                        printf("Could not reuse map fd %d, exiting\n", reuseable_map[i].fd);
+                        printf("Could not reuse map fd %d, exiting\n", map_data[i].fd);
                         return 1;
                     }
                 }
@@ -148,26 +149,23 @@ int main (int argc, char* argv[]) {
                 printf("Could not attach program to device, exiting\n");
                 return 1;
             }
+            // Second round, pin everything we could not reuse
             if(shared_map) {
                 struct bpf_map* map;
-                bpf_map__for_each(map, bpf_obj) {
-                    const char* map_name = bpf_map__name(map);
-                    printf("Checking if map needs to be pinned: %s\n", map_name);
+                for(int i = 0; i < number_of_maps; i++) {
+                    if(map_data[i].alreadyPinned)
+                        continue;
                     char pin_full_path[PATH_MAX_LENGTH];
-                    int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, map_name);
+                    int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, bpf_map__name(map_data[i].map));
                     if(fullpathlength < 0) {
                         printf("Could not generate file name for map pinning, exiting\n");
                         return 1;
                     }
-                    int mapfd = bpf_obj_get(pin_full_path);
-                    if(mapfd < 0) {
-                        // Map is not pinned, therefore we need to pin it now
-                        printf("New pin: %s\n", pin_full_path);
-                        error = bpf_map__pin(map, pin_full_path);
-                        if(error) {
-                            printf("Could not pin map, exiting\n");
-                            return 1;
-                        }
+                    printf("New pin: %s\n", pin_full_path);
+                    error = bpf_map__pin(map, pin_full_path);
+                    if(error) {
+                        printf("Could not pin map, exiting\n");
+                        return 1;
                     }
                 }
             }
@@ -201,7 +199,8 @@ int main (int argc, char* argv[]) {
                 }
             }
             break;
-        case UNLOAD:
+        }
+        case UNLOAD: {
             if (devicename == NULL) {
                 printf("No device given, exiting\n");
                 return 1;
@@ -211,7 +210,7 @@ int main (int argc, char* argv[]) {
                 printf("Device not found, exiting\n");
                 return 1;
             }
-            error = bpf_set_link_xdp_fd(ifindex, -1, 0);
+            int error = bpf_set_link_xdp_fd(ifindex, -1, 0);
             if(error) {
                 printf("Could not unload program from device, exiting\n");
                 return 1;
@@ -224,5 +223,6 @@ int main (int argc, char* argv[]) {
             so all in all - whatever
             */
             break;
+        }
     }
 }
