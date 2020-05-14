@@ -116,9 +116,17 @@ int main (int argc, char* argv[]) {
                     }
                     printf("Checking if map is already pinned: %s\n", pin_full_path);
                     int mapfd = bpf_obj_get(pin_full_path);
-                    map_data[arrayindex].map = map;
-                    map_data[arrayindex].fd = mapfd;
-                    map_data[arrayindex].alreadyPinned = (mapfd > 0);
+                    if(arrayindex >= number_of_maps) {
+                        printf("Found more maps than expected, exiting\n");
+                        return 1;
+                    }
+                    if(mapfd > 0) {
+                        map_data[arrayindex].fd = mapfd;
+                        map_data[arrayindex].alreadyPinned = true;
+                    } else {
+                        map_data[arrayindex].alreadyPinned = false;
+                    }
+                    map_data[arrayindex].map = map;  
                     arrayindex++;
                 }
                 for(int i = 0; i < number_of_maps; i++) {
