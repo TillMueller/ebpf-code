@@ -91,8 +91,10 @@ int main (int argc, char* argv[]) {
             if(shared_map) {
                 struct bpf_map* map;
                 bpf_map__for_each(map, bpf_obj) {
+                    const char* map_name = bpf_map__name(map);
+                    printf("Checking if map is already pinned: %s\n", map_name);
                     char pin_full_path[PATH_MAX_LENGTH];
-                    int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, bpf_map__name(map));
+                    int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, map_name);
                     if(fullpathlength < 0) {
                         printf("Could not generate file name for map reuse, exiting\n");
                         return 1;
@@ -129,8 +131,8 @@ int main (int argc, char* argv[]) {
             if(shared_map) {
                 struct bpf_map* map;
                 bpf_map__for_each(map, bpf_obj) {
-                    char* map_name = bpf_map__name(map);
-                    printf("Found map: %s\n", map_name);
+                    const char* map_name = bpf_map__name(map);
+                    printf("Checking if map needs to be pinned: %s\n", map_name);
                     char pin_full_path[PATH_MAX_LENGTH];
                     int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, map_name);
                     if(fullpathlength < 0) {
