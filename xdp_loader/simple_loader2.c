@@ -108,13 +108,13 @@ int main (int argc, char* argv[]) {
                 int arrayindex = 0;
                 bpf_map__for_each(map, bpf_obj) {
                     const char* map_name = bpf_map__name(map);
-                    printf("Checking if map is already pinned: %s\n", map_name);
                     char pin_full_path[PATH_MAX_LENGTH];
                     int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, map_name);
                     if(fullpathlength < 0) {
                         printf("Could not generate file name for map reuse, exiting\n");
                         return 1;
                     }
+                    printf("Checking if map is already pinned: %s\n", pin_full_path);
                     int mapfd = bpf_obj_get(pin_full_path);
                     map_data[arrayindex].map = map;
                     map_data[arrayindex].fd = mapfd;
@@ -154,8 +154,9 @@ int main (int argc, char* argv[]) {
                 for(int i = 0; i < number_of_maps; i++) {
                     if(map_data[i].alreadyPinned)
                         continue;
+                    const char* map_name = bpf_map__name(map_data[i].map);
                     char pin_full_path[PATH_MAX_LENGTH];
-                    int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, bpf_map__name(map_data[i].map));
+                    int fullpathlength = snprintf(pin_full_path, PATH_MAX_LENGTH, "%s/%s", pin_dir_name, map_name);
                     if(fullpathlength < 0) {
                         printf("Could not generate file name for map pinning, exiting\n");
                         return 1;
