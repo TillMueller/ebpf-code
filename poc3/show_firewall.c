@@ -29,11 +29,11 @@ int main(int argc, char* argv[]) {
             struct flow value;
             int error = bpf_map_lookup_elem(mapfd, &key, &value);
             if(error) {
-                printf("Could not get value (%llu) from map, exiting\n", (key & 0xFFFFFFFFFFFFFFFF));
+                printf("Could not get value (%llu) from map, exiting\n", (unsigned long long) (key & 0xFFFFFFFFFFFFFFFF));
                 fflush(stdout);
                 return 1;
             }
-            printf("data for flow (left 64 bits): %llu\ntime: %llu\nbytes: %llu\n\n", (key & 0xFFFFFFFFFFFFFFFF), value.time, value.bytes);
+            printf("data for flow (left 64 bits): %llu\ntime: %lu\nbytes: %lu\n\n", (unsigned long long) (key & 0xFFFFFFFFFFFFFFFF), value.time, value.bytes);
             prev_key = key;
         }
         printf("----------------------------------\n");
