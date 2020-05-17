@@ -4,7 +4,7 @@ IF=enp5s0f1
 MAPNAME=shared_ratelimiter
 .PHONY: load unload build dump clean
 
-load: $(NAME).o
+load: $(NAME).o $(NAME_USER)
 	../xdp_loader/simple_loader -d $(IF) -f $(NAME).o -l -s $(MAPNAME)
 
 unload:

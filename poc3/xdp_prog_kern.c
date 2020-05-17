@@ -10,8 +10,10 @@
 // so we can quickly switch this to XDP_TX
 #define PASS_VALUE XDP_PASS
 
-// threshold in bit per nanosecond
-#define THRESHOLD 1
+// threshold in bit per second
+#define THRESHOLD 1024
+
+#define NANOSECONDS_PER_SECOND 1000000000
 
 struct flow {
 	uint64_t time;
@@ -110,14 +112,14 @@ int  xdp_stats(struct xdp_md *ctx) {
 	}
 
 	uint64_t delta = bpf_ktime_get_ns() - val->time;
-	uint64_t bitspernanosecond = ((val->bytes + length) * 8) / delta;
+	uint64_t bitspersecond = (((val->bytes + length) * 8) / delta) * NANOSECONDS_PER_SECOND;
 
 	// one second has passed since this flow started, so we get rid of it
-	if(delta >= 1000000000) {
+	if(delta >= NANOSECONDS_PER_SECOND) {
 		bpf_map_delete_elem(&xdp_flows_bandwidth, &key);
 	}
 
-	if(bitspernanosecond >= THRESHOLD) {
+	if(bitspersecond >= THRESHOLD) {
 		return XDP_DROP;
 	}
 
