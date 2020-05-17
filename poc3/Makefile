@@ -1,4 +1,4 @@
-NAME=xdp_prog_kern_external
+NAME=xdp_prog_kern
 NAME_USER=show_firewall
 IF=enp5s0f1
 MAPNAME=shared_ratelimiter
