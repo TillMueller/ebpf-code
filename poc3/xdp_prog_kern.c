@@ -110,7 +110,7 @@ int  xdp_stats(struct xdp_md *ctx) {
 	}
 
 	uint64_t delta = bpf_ktime_get_ns() - val->time;
-	__uint128_t bitspernanosecond = ((val->bytes + length) * 8) / delta;
+	uint64_t bitspernanosecond = ((val->bytes + length) * 8) / delta;
 
 	// one second has passed since this flow started, so we get rid of it
 	if(delta >= 1000000000) {
