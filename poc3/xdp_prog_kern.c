@@ -13,17 +13,17 @@
 // threshold in bit per nanosecond
 #define THRESHOLD 1
 
+struct flow {
+	uint64_t time;
+	uint64_t bytes;
+};
+
 struct bpf_map_def SEC("maps") xdp_flows_bandwidth = {
 	.type        = BPF_MAP_TYPE_HASH,
 	.key_size    = sizeof(__uint128_t),
 	.value_size  = sizeof(struct flow),
 	// this probably is not enough but should be sufficient for testing
 	.max_entries = 65536,
-};
-
-struct flow {
-	uint64_t time;
-	__uint128_t bytes;
 };
 
 enum l4protocol {NONE, TCP, UDP};
@@ -92,12 +92,11 @@ int  xdp_stats(struct xdp_md *ctx) {
 		return XDP_PASS;
 	
 	// key is of this format:
-	__uint128_t key = (src_ip << 96) + (dst_ip << 64) + (src_port << 48) + (dst_port << 32) + l4protocol;
+	__uint128_t key = ((__uint128_t) src_ip << 96) + ((__uint128_t) dst_ip << 64) + ((__uint128_t) src_port << 48) + ((__uint128_t) dst_port << 32) + l4protocol;
 
 	struct flow* val = bpf_map_lookup_elem(&xdp_flows_bandwidth, &key);
 	if (!val) {
-		struct flow new;
-		new.bytes = 0;
+		struct flow new = {};
 		bpf_map_update_elem(&xdp_flows_bandwidth, &key, &new, BPF_ANY);
 		val = bpf_map_lookup_elem(&xdp_flows_bandwidth, &key);
 		if(!val)
