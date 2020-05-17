@@ -24,7 +24,8 @@ struct bpf_map_def SEC("maps") xdp_flows_bandwidth = {
 	.type        = BPF_MAP_TYPE_HASH,
 	.key_size    = sizeof(__uint128_t),
 	.value_size  = sizeof(struct flow),
-	// this probably is not enough but should be sufficient for testing
+	// this probably is not enough in the real world but should be sufficient for testing
+	// as far as I know, a record is discarded when we're at the limit and try to create a new one
 	.max_entries = 65536,
 };
 
@@ -118,7 +119,9 @@ int  xdp_stats(struct xdp_md *ctx) {
 	uint64_t delta = curtime - val->time;
 	uint64_t bitspersecond = (((val->bytes + length) * 8 * NANOSECONDS_PER_SECOND) / delta);
 
-	// if one second has passed since this flow started, we get rid of it
+	// if one second has passed since this flow started, we clear it
+	// this is certainly not the best solution, but it prevents long-running flows from being
+	// penalized too much for their past activity
 	if(delta >= NANOSECONDS_PER_SECOND) {
 		val->time = curtime;
 		val->bytes = 0;
@@ -128,7 +131,8 @@ int  xdp_stats(struct xdp_md *ctx) {
 		return XDP_DROP;
 	}
 
-	// we might need __sync_fetch_and_add here
+	// not certain this is necessary since if we miss a packet its not a major issue
+	// but I did not see a noticeable performance penalty for using it either
 	__sync_fetch_and_add(&val->bytes, length);
 	return PASS_VALUE;
 }
