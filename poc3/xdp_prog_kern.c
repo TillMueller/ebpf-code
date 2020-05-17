@@ -10,7 +10,7 @@
 // so we can quickly switch this to XDP_TX
 #define PASS_VALUE XDP_PASS
 
-// threshold in bit per second
+// threshold in bits per second
 #define THRESHOLD 1024
 
 #define NANOSECONDS_PER_SECOND 1000000000
@@ -96,27 +96,32 @@ int  xdp_stats(struct xdp_md *ctx) {
 	// key is of this format:
 	__uint128_t key = ((__uint128_t) src_ip << 96) + ((__uint128_t) dst_ip << 64) + ((__uint128_t) src_port << 48) + ((__uint128_t) dst_port << 32) + l4protocol;
 
+	uint64_t curtime = bpf_ktime_get_ns();
+
 	struct flow* val = bpf_map_lookup_elem(&xdp_flows_bandwidth, &key);
 	if (!val) {
 		struct flow new = {};
-		bpf_map_update_elem(&xdp_flows_bandwidth, &key, &new, BPF_ANY);
-		val = bpf_map_lookup_elem(&xdp_flows_bandwidth, &key);
-		if(!val)
+		new.time = curtime;
+		new.bytes = length;
+		int error = bpf_map_update_elem(&xdp_flows_bandwidth, &key, &new, BPF_ANY);
+		if(error)
 			return XDP_ABORTED;
+		return PASS_VALUE;
 	}
 
 	if(val->bytes == 0) {
-		val->time = bpf_ktime_get_ns();
+		val->time = curtime;
 		val->bytes = length;
 		return PASS_VALUE;
 	}
 
-	uint64_t delta = bpf_ktime_get_ns() - val->time;
-	uint64_t bitspersecond = (((val->bytes + length) * 8) / delta) * NANOSECONDS_PER_SECOND;
+	uint64_t delta = curtime - val->time;
+	uint64_t bitspersecond = (((val->bytes + length) * 8 * NANOSECONDS_PER_SECOND) / delta);
 
-	// one second has passed since this flow started, so we get rid of it
+	// if one second has passed since this flow started, we get rid of it
 	if(delta >= NANOSECONDS_PER_SECOND) {
-		bpf_map_delete_elem(&xdp_flows_bandwidth, &key);
+		val->time = curtime;
+		val->bytes = 0;
 	}
 
 	if(bitspersecond >= THRESHOLD) {
@@ -124,7 +129,7 @@ int  xdp_stats(struct xdp_md *ctx) {
 	}
 
 	// we might need __sync_fetch_and_add here
-	val->bytes += length;
+	__sync_fetch_and_add(&val->bytes, length);
 	return PASS_VALUE;
 }
 
