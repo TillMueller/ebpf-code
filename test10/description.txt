@@ -1,0 +1,1 @@
+compare to test6, boundary once, lookup once but using array instead of hash
