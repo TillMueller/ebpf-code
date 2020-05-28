@@ -1,0 +1,1 @@
+compare to test4, boundary lookup once, but with hashmap here instead
