@@ -93,6 +93,8 @@ int xdp_firewall_internal(struct xdp_md *ctx) {
 	udphdr->source = udphdr->dest;
 	udphdr->dest = udp_source;
 
+	//TODO recalculate checksum
+
 	return XDP_TX;
 }
 
