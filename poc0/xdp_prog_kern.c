@@ -9,7 +9,7 @@ struct bpf_map_def SEC("maps") xdp_stats_map = {
 };
 
 SEC("xdp")
-int  xdp_stats(struct xdp_md *ctx) {
+int xdp_stats(struct xdp_md *ctx) {
 	unsigned char* data = (void *)(long)ctx->data;
 	unsigned char* data_end = (void *)(long)ctx->data_end;
 

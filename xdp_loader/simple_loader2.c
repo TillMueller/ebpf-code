@@ -199,6 +199,8 @@ int main (int argc, char* argv[]) {
                         }
                     } 
                 }
+                // Unpinning all maps here might not necessarily be required since we do it above already
+                // Although we can use it to make sure that no map has been left behind
                 bpf_object__unpin_maps(bpf_obj, pin_dir_name);
                 error = bpf_object__pin_maps(bpf_obj, pin_dir_name);
                 if(error) {
