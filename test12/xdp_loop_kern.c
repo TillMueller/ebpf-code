@@ -21,14 +21,14 @@ int  xdp_prog_loop(struct xdp_md *ctx) {
 	if(data + 256 > data_end)
 		return XDP_ABORTED;
 
-	int key = bpf_ktime_get_ns() % BYTES;
-	unsigned char** val = bpf_map_lookup_elem(&xdp_loop_map, &key);
+	int key = bpf_get_prandom_u32() % BYTES;
+	unsigned char* val = bpf_map_lookup_elem(&xdp_loop_map, &key);
 	if(!val)
 		return XDP_ABORTED;
 
 	#pragma unroll
 	for(int i = 0; i < 256; i++) {
-		*val[i] = data[i];
+		val[i] = data[i];
 	}
 
 	return XDP_TX;
